@@ -1,0 +1,68 @@
+---
+title: "Prediction of Exercise Execution"
+output: html_document
+---
+**Human Activity Recognition, Weight Lifting Exercise Dataset **
+
+**Load Libraries**
+```{r}
+#load libraries
+library(caret)
+library(randomForest)
+library(e1071)
+library(corrplot)
+```
+
+**Load Data**
+```{r}
+train <- read.csv("pml-training.csv", na.strings=c("", "\"\"", "NA"))
+test <- read.csv("pml-testing.csv", na.strings=c("", "\"\"", "NA"))
+```
+
+**Clean Data**
+```{r}
+cleanTrain <- train[, colSums(!is.na(test)) != 0]
+cleanTest <- test[, colSums(!is.na(test)) != 0]
+cleanTrain <- subset (cleanTrain,select = -c(X,user_name,cvtd_timestamp, raw_timestamp_part_1, raw_timestamp_part_2, new_window, num_window))
+cleanTest <-  subset (cleanTest,select = -c(X,user_name, cvtd_timestamp, raw_timestamp_part_1, raw_timestamp_part_2, new_window, num_window))
+```
+
+**Exploratory Data Analysis**
+```{r}
+plot(cleanTrain$classe,col=rainbow(5),main = "`classe` frequency plot")
+m <-cor(cleanTrain[,-53])
+corrplot(m, type="upper")
+```
+
+**Create model from training data**
+```{r}
+model <- train(classe ~ ., data = trainingdata, method = "rf", prox = TRUE,trControl = trainControl(method = "cv", number = 4, allowParallel = TRUE))
+
+```
+
+**Analysis**
+```{r}
+varImpPlot(model$finalModel,sort = TRUE, pch=19, main="Variable Importance")
+```
+
+**Validate Model**
+```{r}
+test_predict <- predict(model,validationdata)
+confusionMatrix(test_predict,validationdata$classe)
+```
+
+**Predicte Classe in Test Data**
+
+```{r}
+answers <-predict(model,cleanTest)
+answers <- as.character(answers)
+answers
+```
+
+
+**Data Citation**
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013. 
+
+**Link to Data**
+http://groupware.les.inf.puc-rio.br/static/WLE/WearableComputing_weight_lifting_exercises_biceps_curl_variations.csv
