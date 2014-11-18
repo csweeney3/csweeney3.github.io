@@ -1,0 +1,112 @@
+---
+title: "Prediction of Exercise Execution"
+output: html_document
+---
+**Human Activity Recognition, Weight Lifting Exercise Dataset **
+
+In contrast to studies to determine what activity a person is doing, this study evaluates participants execution of common weight lifting exercise, 4 done with incorrect form and one done per specification. This is identified as the classe, with "A"" being correct form and B through E being incorrect form mimicing common mistakes.
+Data were collected via sensors at the bicep, wrist and hips of the participants.
+
+
+**Load Libraries**
+```{r}
+#load libraries
+library(caret)
+library(randomForest)
+library(corrplot)
+```
+
+**Load Data**
+```{r}
+train <- read.csv("pml-training.csv", na.strings=c("", "\"\"", "NA"))
+test <- read.csv("pml-testing.csv", na.strings=c("", "\"\"", "NA"))
+```
+
+**First Look at the data**
+
+There are 19622 obs. of  160 variables, but there are numerous columns that are entirely NA
+```{r}
+q<-sapply(train, function(x)all(!is.na(x)))
+summary(q)
+##alternately caret::nearZeroVar(train)
+```
+
+
+**Clean Data**
+
+We will remove the NA columns from the train and test datasets, additionally, we will remove several factor variables.
+```{r}
+cleanTrain <- train[, colSums(!is.na(test)) != 0]
+cleanTest <- test[, colSums(!is.na(test)) != 0]
+cleanTrain <- subset (cleanTrain,select = -c(X,user_name,cvtd_timestamp, raw_timestamp_part_1, raw_timestamp_part_2, new_window, num_window))
+cleanTest <-  subset (cleanTest,select = -c(X,user_name, cvtd_timestamp, raw_timestamp_part_1, raw_timestamp_part_2, new_window, num_window))
+```
+This leaves 19622 obs. of 53 variables, the last variable in the train dataset being the classe variable we are modeling a predction for.
+
+**Exploratory Data Analysis**
+
+A quick review of the distribution of the classe variable. Also, a plot of correlations to help in starting to identify variables of importance to the model. (the corrplot is poorly rendered in the HTML, but I included the code if someone wants to run in R Studio)
+```{r}
+plot(cleanTrain$classe,col=rainbow(5),main = "`classe` frequency plot")
+m <-cor(cleanTrain[,-53])
+#corrplot(m)
+par(mfrow=c(1,3)) 
+corrplot(m[,1:17])
+corrplot(m[,18:35])
+corrplot(m[,35:52])
+```
+
+
+**Partion Training Data**
+
+Splitting the cleaned train dataset into a 70% training and 30% validation subset.
+```{r}
+set.seed=(4567)
+partition <- createDataPartition(y = cleanTrain$classe, p = 0.7, list = FALSE)
+trainingdata <- cleanTrain[partition, ]
+validationdata  <- cleanTrain[-partition,]
+
+```
+
+**Create model from training data**
+
+Using Random Forest in the caret package to model the training dataset.
+```{r}
+model <- train(classe ~ ., data = trainingdata, method = "rf", prox = TRUE,trControl = trainControl(method = "cv", number = 4, allowParallel = TRUE))
+
+```
+
+**Analysis**
+
+A review of the variable importance in the model
+```{r}
+varImpPlot(model$finalModel,sort = TRUE, pch=19, main="Variable Importance")
+```
+
+**Validate Model**
+
+Validating the model against the subsetted validation dataset.
+```{r}
+test_predict <- predict(model,validationdata)
+confusionMatrix(test_predict,validationdata$classe)
+```
+The estimated accuracy of the model is 99.3% and the estimated out-of-sample error based on our fitted model applied to the cross validation dataset is 0.7%. 
+
+
+**Predict Classe in Test Data**
+
+Running the model against the test dataset.
+```{r}
+answers <-predict(model,cleanTest)
+answers <- as.character(answers)
+answers
+```
+
+
+**Data Citation**
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013. 
+
+**Link to Data**
+
+http://groupware.les.inf.puc-rio.br/static/WLE/WearableComputing_weight_lifting_exercises_biceps_curl_variations.csv
