@@ -54,6 +54,7 @@ if (window.hljs && document.readyState && document.readyState === "complete") {
 
 <div id="analysis-of-highest-degree-earned-and-religious-service-attendence" class="section level1">
 <h1>Analysis of Highest Degree Earned and Religious Service Attendence</h1>
+<p><strong>Chris Sweeney, October 17th 2014</strong></p>
 <p><strong>Introduction</strong></p>
 <p>This project is a chi-square independence analsysis of the affect of Highest Degree Earned on Religious Service Attendence. It explores any dependencies between education and religious observance. It is of interest to see if there is any effect of education on religious practice in the population sampled.</p>
 <p><strong>Data</strong></p>
@@ -90,7 +91,7 @@ install.packages(&quot;ggplot2&quot;)</code></pre>
 <pre><code>## package 'ggplot2' successfully unpacked and MD5 sums checked
 ## 
 ## The downloaded binary packages are in
-##  C:\Users\sweenc1\AppData\Local\Temp\Rtmp25f8M4\downloaded_packages</code></pre>
+##  C:\Users\sweenc1\AppData\Local\Temp\RtmpY3VVb5\downloaded_packages</code></pre>
 <pre class="r"><code>library(&quot;ggplot2&quot;)
 t &lt;-data.frame(testgss$attend,testgss$degree)
 ggplot(t, aes(x = testgss.attend)) + ylab(&quot;% Attend by Degree&quot;) + xlab(&quot;Attend&quot;) + geom_bar(aes(fill = testgss.degree), position = 'fill') + coord_fixed(ratio=7)</code></pre>
@@ -101,7 +102,7 @@ install.packages(&quot;vcd&quot;)</code></pre>
 <pre><code>## package 'vcd' successfully unpacked and MD5 sums checked
 ## 
 ## The downloaded binary packages are in
-##  C:\Users\sweenc1\AppData\Local\Temp\Rtmp25f8M4\downloaded_packages</code></pre>
+##  C:\Users\sweenc1\AppData\Local\Temp\RtmpY3VVb5\downloaded_packages</code></pre>
 <pre class="r"><code>library(&quot;vcd&quot;)</code></pre>
 <pre><code>## Loading required package: grid</code></pre>
 <pre class="r"><code>assoc(t2,shade=TRUE, main=&quot;Relation between Attend and Degree&quot;)</code></pre>
@@ -215,6 +216,7 @@ install.packages(&quot;vcd&quot;)</code></pre>
 ## 53 1972 Lt High School     2-3X A Month
 ## 54 1972    High School More Thn Once Wk
 ## 55 1972 Lt High School  Nrly Every Week</code></pre>
+<p>Chris Sweeney, October 17th 2014</p>
 </div>
 
 
