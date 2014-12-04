@@ -1,0 +1,155 @@
+---
+output: html_document
+---
+Analysis of Highest Degree Earned and Religious Service Attendence
+==================================================================
+
+**Chris Sweeney, October 17th 2014**
+
+**Introduction** 
+
+This project is a chi-square independence analsysis of the affect of Highest Degree Earned on Religious Service Attendence. It explores any dependencies between education and religious observance. It is of interest to see if there is any effect of education on religious practice in the population sampled.
+
+**Data**
+
+   Data were collected via questionerres for the General Social Survey over a period of time from 1972-2012
+   Cases are indivial respondents to the questionaire.
+   The variable we are reviewing are 'attend' (for religious service attendence) and 'degree' (for highest degree attained). The are both categorical variables.
+   We are working with 46267 observations of 2 variables, the response variable  (attend) has 8 levels and the explanatory variable (degree) has  5 levels.
+   The GSS data are a volunteer-biased, observational study that is conducted over a period of years, each year may or may no contain the same questions/data elements. Additionally, the number of respondents per question vary across years. Generalization to a wider population is not possible due to these and other confounding issue (ie socail attitudes toward religion changing over time, individual participation varies over time, geographic and regional differences in attendence).
+
+**Exploratory Analysis**
+
+The following code loads and prepares the data.
+```{r}
+setInternet2()
+load(url("http://bit.ly/dasi_gss_data"))
+#just columns of interest, gss$year, gss$degree and gss$attend
+mygss <-gss[c(2,12,32)]
+#remove rows with NAs in either column
+testgss <-mygss[!is.na(mygss[,1])&!is.na(mygss[,2])&!is.na(mygss[,3]),]
+#droplevels
+testgss <- droplevels(testgss)
+```
+
+Create a 2 dimension contigency table
+```{r}
+t2 = table(testgss$degree, testgss$attend) # 2-D contingency table
+#shorten the names for the graphs
+colnames(t2) <- c("<yr","1/yr","svrl/yr","1/mn","svrl/mn","< evry wk","evry wk","> evry wk")
+rownames(t2) <-c("<HS","HS","JC","Bach","Grad")
+```
+
+
+A look at the data.
+```{r}
+#EDA
+summary(testgss)
+```
+
+**Bar Plot of Percentage of counts of Degree versus Attend**
+```{r}
+setInternet2()
+install.packages("ggplot2")
+library("ggplot2")
+t <-data.frame(testgss$attend,testgss$degree)
+ggplot(t, aes(x = testgss.attend)) + ylab("% Attend by Degree") + xlab("Attend") + geom_bar(aes(fill = testgss.degree), position = 'fill') + coord_fixed(ratio=7)
+```
+
+**Association table of Residuals**
+```{r}
+setInternet2()
+install.packages("vcd")
+library("vcd")
+assoc(t2,shade=TRUE, main="Relation between Attend and Degree")
+```
+
+**Summary of Exploratory Data Analysis**
+
+The barplot of percentage of counts of degree versus attend shows very consistent banding across all groups. This suggests some level of dependency between degree and attend. The association plot shows some significant residuals comparing expected and observed values, again showing some affect of degree on attend.
+
+**Inference**
+
+   **State hypotheses**
+   
+   **HO** Highest Degree Attained and Religious Service Attendence are independent. Attendence does not vary by education level.
+   
+   **HA** Highest Degree Attained and Religious Service Attendence are independent. Attendence does vary by education level.
+   
+   This data meets the conditions for chi-squred analysis of differences. The observations are independent, there is one row per respondent. The sampling is random without  replavement with n <10% of the population. Each case contributes to only one cell of the dependency table, and each cell of the dependency table has at least 5 cases.
+
+**Data Analysis**
+
+**Using R to call a chisq.test**
+
+```{r}
+chisq.test(t2) # Pearson Chi-Square test
+```
+
+**Display the contigency table of observed counts**
+
+```{r}
+chisq.test(t2)$observed
+```
+
+**Display the contigency table of expected counts**
+
+```{r}
+chisq.test(t2)$expected
+```
+
+
+**Subtract the observed matrix from the expected matrix and list the differences**
+
+```{r}
+round(chisq.test(t2)$expected, digits=2) - round(chisq.test(t2)$observed, digits=2)
+```
+
+
+**Inference and Conclusion** 
+
+H-0: Response and explanatory variables are independent. Attendance does not vary by education level.
+H-A: Response and explanatory variables are dependent. Attendance does vary by education.
+
+With a p-value from the Chi-squared test < 2.2e-16 we have strong evidence to reject the null hypothesis that religious service attendance does not vary by education level.
+This is graphically displayed in the bar plot in the Exploratory Data Analysis section and also confirmed in the contingency table that displays the difference in values between observed and expected results.
+However, while we can infer some relationship exists between degree and attendance, we cannot conclude that it is a sole or primary explanation for differences between Religious Service Attendance.
+
+**Citations**
+
+Inference function from DASI Coursera website
+  http://s3.amazonaws.com/assets.datacamp.com/course/dasi/inference.Rdata
+  
+DASI project RMD Template
+  http://bit.ly/dasi_project_template
+  
+R programming Essential Functions
+http://forums.psy.ed.ac.uk/R/P01582/essential-12/
+
+R Tutorials Chi Square Test of Independence
+http://ww2.coastal.edu/kingw/statistics/R-tutorials/independ.html
+
+R Library Matrices and Matrix Computations in R
+http://www.ats.ucla.edu/stat/r/library/matrix_alg.htm
+
+Stacked bar chart as percentage of counts
+http://stackoverflow.com/questions/3619067/stacked-bar-chart-in-r-ggplot2-with-y-axis-and-bars-as-percentage-of-counts?rq=1
+
+Association Plots
+http://www.statmethods.net/advgraphs/mosaic.html
+http://www.r-project.org/conferences/DSC-2003/Proceedings/MeyerEtAl.pdf
+  
+  **Data Citation**
+  
+Smith, Tom W., Michael Hout, and Peter V. Marsden. General Social Survey, 1972-2012 [Cumulative File]. ICPSR34802-v1. Storrs, CT: Roper Center for Public Opinion Research, University of Connecticut /Ann Arbor, MI: Inter-university Consortium for Political and Social Research [distributors], 2013-09-11. doi:10.3886/ICPSR34802.v1
+
+Persistent URL: http://doi.org/10.3886/ICPSR34802.v1
+
+
+**Appendix of Data**
+
+```{r}
+print(testgss[1:50, ])
+```
+
+Chris Sweeney, October 17th 2014
