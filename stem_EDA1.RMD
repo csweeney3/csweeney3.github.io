@@ -1,0 +1,136 @@
+---
+title: "Exploratory Data Anaylsis STEM Jobs"
+author: "Chris Sweeney"
+date: "Friday, December 05, 2014"
+output: html_document
+---
+**Introduction**
+
+A paper released by Jonathan Rothwell of the Brookings Institution in June of 2013 reviewed STEM (Science, Technology, Engineering and Math) employment in 2011 across geographies in the United States. The premise of this paper is that there is a more widespread STEM economy than the perception that these jobs are clustered in large east and west coast technology hubs and require advanced degrees and extensive training. We examine some of that data here. Paper and Data Citations are at the bottom of this report. One critical definition that drives this discussion is a much more broad interpretation of what a STEM job is. These data include jobs such as carpenter, food service workers, cosmetician, HVAC technician etc that are not often considered STEM, and as such are more widely distributed georgaphically.
+
+**Install Packages**
+```{r}
+if (!require("gplots")) {
+   install.packages("gplots", dependencies = TRUE)
+   library(gplots)
+   }
+if (!require("RColorBrewer")) {
+   install.packages("RColorBrewer", dependencies = TRUE)
+   library(RColorBrewer)
+   }
+```
+
+
+
+**Load Data**
+```{r}
+setwd("E:/Data_from_Hidden_STEM_Economy/Exploratory Data Analysis")
+StemJobs <- read.csv("100 Largest Metropolitan Areas--Aggregated STEM Economy Metrics for 2011.csv", na.strings=c("", "\"\"","NA"))
+```
+
+
+Comparing Boston to the other 99 FSAs
+
+Since I am located in Massachusetts, let's take a look at how Boston rates against the top 99 FSA metropolitan areas.
+
+```{r}
+
+options(scipen=3)
+
+StemJobEducation <- StemJobs[c(21,19,17,18)]
+boxplot(StemJobEducation,col =c("red","royalblue2","darkgreen","gold"), names = c("< Assoc Stem","BA > Stem", "Avg Stem","Avg NonStem"), main="Boston v National Wages by Education",par(bg="ghostwhite"))
+abline(h=StemJobs[StemJobs$MSA_FIPS_Code==14460,21],col="red",lty=5)
+abline(h=StemJobs[StemJobs$MSA_FIPS_Code==14460,19],col="royalblue2",lty=5)
+abline(h=StemJobs[StemJobs$MSA_FIPS_Code==14460,17],col="darkgreen",lty=5)
+abline(h=StemJobs[StemJobs$MSA_FIPS_Code==14460,18],col="gold",lty=5)
+ 
+ 
+
+```
+
+** Heat Map analysis of regional differences**
+
+Subsetting for HeatMap
+```{r}
+
+StemJobsTrimmed <- StemJobs[c(3,8:11,33)] 
+# get top 10 in % STEM jobs
+StemJobsTrimmed <- StemJobsTrimmed[ which( StemJobsTrimmed$Rank_Pct_STEM_Jobs2011 < 10),]
+StemJobsTrimmed <- StemJobsTrimmed[c(-6)]
+colnames(StemJobsTrimmed) <- c("FSA_Title","Science Skills","Computer Skills","Eng Skills","Math Skills")
+rnames <- StemJobsTrimmed[,1]
+StemJobsMatrix  <- data.matrix(StemJobsTrimmed[,2:ncol(StemJobsTrimmed)])
+rownames(StemJobsMatrix) <- rnames
+
+my_palette <- colorRampPalette(c("green", "yellow", "red"))(n = 299)
+
+col_breaks = c(seq(0,50000,length=100), # for red
+seq(50001,200000,length=100), # for yellow
+seq(200001,500000, length=100)) # for green
+
+heatmap.2(StemJobsMatrix,
+  cellnote = StemJobsMatrix,  # same data set for cell labels
+  main = "Top 10% Stem Jobs FSAs", # heat map title
+  notecol="black",      # change font color of cell labels to black
+  density.info="none",  # turns off density plot inside color legend
+  trace="none",         # turns off trace lines inside the heat map
+  dendrogram="none",
+  key=TRUE,
+  margins =c(12,9),     # widens margins around plot
+  breaks=col_breaks,
+  Rowv=FALSE, 
+  Colv=FALSE,
+  col=my_palette)       # use on color palette defined earlier 
+             
+
+```
+
+
+```{r}
+
+StemJobsTrimmed <- StemJobs[c(3,17:22,33)] 
+# get top 10 in % STEM jobs
+StemJobsTrimmed <- StemJobsTrimmed[ which( StemJobsTrimmed$Rank_Pct_STEM_Jobs2011 < 10),]
+StemJobsTrimmed <- StemJobsTrimmed[c(-8)]
+colnames(StemJobsTrimmed) <- c("FSA_Title","AvgSTEM","AVGNonSTEM","BA>STEM","BA>NonSTEM","Assoc<STEM", "Assoc<NonSTEM")
+rnames <- StemJobsTrimmed[,1]
+StemJobsMatrix  <- data.matrix(StemJobsTrimmed[,2:ncol(StemJobsTrimmed)])
+StemJobsMatrix <-round(StemJobsMatrix)
+rownames(StemJobsMatrix) <- rnames
+
+my_palette <- colorRampPalette(c("green", "yellow", "red"))(n = 299)
+
+col_breaks = c(seq(0,60000,length=100), # for red
+seq(60001,8000,length=100), # for yellow
+seq(80001,125000, length=100)) # for green
+
+heatmap.2(StemJobsMatrix,
+  cellnote = StemJobsMatrix,  # same data set for cell labels
+  main = "Top 10% FSA Wages by Education", # heat map title
+  notecol="black",      # change font color of cell labels to black
+  density.info="none",  # turns off density plot inside color legend
+  trace="none",         # turns off trace lines inside the heat map
+  dendrogram="none",
+  key=TRUE,
+  margins =c(12,9),     # widens margins around plot
+  breaks=col_breaks,
+  Rowv=FALSE, 
+  Colv=FALSE,
+  col=my_palette)       # use on color palette defined earlier 
+         
+
+
+
+```
+
+
+**Persistant Data Citation**
+
+http://www.brookings.edu/research/reports/2013/06/10-stem-economy-rothwell
+
+
+**Research Paper Citation**
+
+
+http://www.brookings.edu/~/media/research/files/reports/2013/06/10%20stem%20economy%20rothwell/thehiddenstemeconomy610.pdf
+
